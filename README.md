@@ -85,7 +85,7 @@ example.csv contains fake demo data
 Do not commit real bank statements or API keys
 
 API keys should be stored locally and ignored via .gitignore
----
+
 ## ⚠️ Disclaimer
 This project is intended for educational and local use only.
 It is not suitable for production environments or handling sensitive financial data without additional security measures.
