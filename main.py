@@ -378,7 +378,7 @@ def Banking_csv():
 # =========================
 # Program
 # =========================
-console.print(pyfiglet.figlet_format("Data-Info"), style="app.title")
+console.print(pyfiglet.figlet_format("Dashboard"), style="app.title")
 console.print("Enter the place to check", style="app.weather")
 Location = input("> ")
 
