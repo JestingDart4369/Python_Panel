@@ -1,0 +1,10 @@
+{
+  "theme": "midnight",
+  "refresh_minutes": 10,
+  "units": "metric",
+  "use_winrt_location": true,
+  "live_screen": true,
+  "bank_rows": 2,
+  "max_hourly_forecast": 12,
+  "max_weekly_forecast": 7
+}
