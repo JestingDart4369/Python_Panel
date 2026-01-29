@@ -6,9 +6,11 @@ from datetime import datetime, timedelta, timezone
 import requests
 from rich.table import Table
 
-
-URL_WEATHER_HOURLY = "https://pro.openweathermap.org/data/2.5/forecast/hourly"
-URL_WEATHER_DAILY = "https://api.openweathermap.org/data/2.5/forecast/daily"
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from requirements.gateway import GatewayClient
+from requirements import apikey
 
 WEATHER_ICONS = {
     "01d": "☀️", "02d": "⛅", "03d": "☁️", "04d": "☁️☁️", "09d": "🌧️",
@@ -32,7 +34,12 @@ class WeatherResult:
 
 class WeatherService:
     def __init__(self, api_key: str, units: str):
-        self.api_key = api_key
+        # Initialize gateway client
+        self.gateway = GatewayClient(
+            base_url=apikey.GATEWAY_URL,
+            username=apikey.GATEWAY_USERNAME,
+            password=apikey.GATEWAY_PASSWORD
+        )
         self.units = units  # "metric" or "imperial"
 
         self.temp_unit = "°C" if units == "metric" else "°F"
@@ -44,16 +51,11 @@ class WeatherService:
         self.hourly_table = Table()
         self.weekly_table = Table()
 
-    def _request_json(self, url: str) -> dict:
-        headers = {"accept": "application/json", "accept-encoding": "deflate, gzip, br"}
-        r = requests.get(url, headers=headers, timeout=20)
-        if r.status_code != 200:
-            raise WeatherError(f"API Error ({r.status_code}): Unable to retrieve weather information")
-        return r.json()
-
     def fetch_hourly(self, lat: float, lon: float, rows: int) -> tuple[Table, str, str]:
-        url = f"{URL_WEATHER_HOURLY}?lat={lat}&lon={lon}&appid={self.api_key}&units={self.units}"
-        data = self._request_json(url)
+        try:
+            data = self.gateway.get_hourly_forecast(lat, lon, self.units)
+        except Exception as e:
+            raise WeatherError(f"API Error: Unable to retrieve hourly forecast: {e}")
 
         city = data["city"]["name"]
         country = data["city"]["country"]
@@ -88,8 +90,10 @@ class WeatherService:
         return table, city, country
 
     def fetch_weekly(self, lat: float, lon: float, rows: int) -> tuple[Table, str, str]:
-        url = f"{URL_WEATHER_DAILY}?lat={lat}&lon={lon}&appid={self.api_key}&units={self.units}"
-        data = self._request_json(url)
+        try:
+            data = self.gateway.get_daily_forecast(lat, lon, days=rows, units=self.units)
+        except Exception as e:
+            raise WeatherError(f"API Error: Unable to retrieve daily forecast: {e}")
 
         city = data["city"]["name"]
         country = data["city"]["country"]

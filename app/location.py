@@ -5,12 +5,15 @@ from datetime import timedelta, timezone
 import asyncio
 from pathlib import Path
 from typing import Optional
+import sys
+import os
 
 import requests
 from winrt.windows.devices.geolocation import Geolocator
 
-
-URL_IPREGISTRY = "https://api.ipregistry.co"
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from requirements.gateway import GatewayClient
+from requirements import apikey
 
 
 class LocationError(RuntimeError):
@@ -30,12 +33,15 @@ class LocationService:
         use_winrt: bool,
         api_key_get_city: str,
         api_key_geo: str,
-        ipregistry_url: str = URL_IPREGISTRY,
+        ipregistry_url: str = "",
     ):
         self.use_winrt = use_winrt
-        self.api_key_get_city = api_key_get_city
-        self.api_key_geo = api_key_geo
-        self.ipregistry_url = ipregistry_url
+        # Initialize gateway client
+        self.gateway = GatewayClient(
+            base_url=apikey.GATEWAY_URL,
+            username=apikey.GATEWAY_USERNAME,
+            password=apikey.GATEWAY_PASSWORD
+        )
 
         # state you can read from main/ui
         self.label: str = "—"
@@ -48,36 +54,31 @@ class LocationService:
         return float(point.latitude), float(point.longitude)
 
     def _detect_city_from_ip(self) -> str:
-        url = f"{self.ipregistry_url}/?key={self.api_key_get_city}&fields=location.city,connection"
-        r = requests.get(url, timeout=15)
-        if r.status_code != 200:
-            raise LocationError("Unable to retrieve city information from IPRegistry.")
-        data = r.json()
-        city = data.get("location", {}).get("city")
-        if not city:
-            raise LocationError("IPRegistry response did not contain a city.")
-        return city
+        try:
+            data = self.gateway.get_location_from_ip()
+            city = data.get("location", {}).get("city")
+            if not city:
+                raise LocationError("IPRegistry response did not contain a city.")
+            return city
+        except Exception as e:
+            raise LocationError(f"Unable to retrieve city information from IPRegistry: {e}")
 
     def _geocode_city(self, city_name: str) -> tuple[float, float]:
-        url = f"https://api.geoapify.com/v1/geocode/search?text={city_name}&apiKey={self.api_key_geo}"
-        headers = {"accept": "application/json", "accept-encoding": "deflate, gzip, br"}
+        try:
+            data = self.gateway.geocode(city_name)
+            features = data.get("features") or []
+            if not features:
+                raise LocationError(f"Geoapify returned no results for city '{city_name}'.")
 
-        r = requests.get(url, headers=headers, timeout=15)
-        if r.status_code != 200:
-            raise LocationError("Unable to retrieve coordinates from Geoapify.")
+            props = features[0].get("properties", {})
+            lat = props.get("lat")
+            lon = props.get("lon")
+            if lat is None or lon is None:
+                raise LocationError("Geoapify response missing lat/lon.")
 
-        data = r.json()
-        features = data.get("features") or []
-        if not features:
-            raise LocationError(f"Geoapify returned no results for city '{city_name}'.")
-
-        props = features[0].get("properties", {})
-        lat = props.get("lat")
-        lon = props.get("lon")
-        if lat is None or lon is None:
-            raise LocationError("Geoapify response missing lat/lon.")
-
-        return float(lat), float(lon)
+            return float(lat), float(lon)
+        except Exception as e:
+            raise LocationError(f"Unable to retrieve coordinates from Geoapify: {e}")
 
     def _fallback_ip_city_geo(self) -> LocationResult:
         city = self._detect_city_from_ip()

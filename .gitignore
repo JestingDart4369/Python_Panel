@@ -1,3 +1,38 @@
+# API keys and credentials (CRITICAL - DO NOT COMMIT)
 /requirements/apikey.py
+
+# Bank statements (sensitive financial data)
 /02_Bankauszüge/*
+
+# Archived/old code
 /Archive/
+
+# Logs
+/logs/
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Configuration (may contain sensitive data)
+/requirements/config.json

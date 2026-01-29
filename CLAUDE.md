@@ -1,213 +1,100 @@
-# CLAUDE.md - AI Assistant Guide for Python_Panel
-
-This document provides comprehensive guidance for AI assistants working with the Python_Panel codebase.
+# CLAUDE.md - Python_Panel
 
 ## Project Overview
 
-**Python_Panel** is a terminal dashboard application that displays real-time weather forecasts and banking transaction summaries in a styled terminal interface. Built with Python and the Rich library, it demonstrates clean separation of concerns and modular architecture.
+Terminal-based dashboard displaying real-time weather forecasts and bank transaction summaries. Built with Rich library for interactive CLI UI.
 
-### Key Features
-- Real-time hourly and weekly weather forecasts via OpenWeather API
-- Automatic location detection (WinRT on Windows, IP-based fallback)
-- Banking overview from local CSV files with balance calculations
-- Multiple terminal themes (forest_dark, forest, autumn, glacier, midnight_olive)
-- Live screen refresh with configurable intervals
-
-## Project Structure
+## Structure
 
 ```
-Python_Panel/
-├── app/                          # Main application package
-│   ├── main.py                   # Entry point - orchestrates services and main loop
-│   ├── config.py                 # Configuration loader with defaults
-│   ├── paths.py                  # Path constants (BANK_DIR, CONFIG_DIR, LOG_DIR)
-│   ├── weather.py                # WeatherService - OpenWeather API integration
-│   ├── banking.py                # Banking class - CSV parsing and calculations
-│   ├── location.py               # LocationService - geolocation handling
-│   └── ui/                       # UI module
-│       ├── layout.py             # Rich layout builder
-│       ├── theme.py              # Theme definitions (Rich Theme objects)
-│       └── utils.py              # UI helpers (forecast limits, text clamping)
-├── requirements/                 # Configuration directory
-│   ├── apikey_Def.py             # API key template (copy to apikey.py)
-│   └── config.json               # User configuration
-├── example.csv                   # Sample bank data for testing
-├── requirements.txt              # Python dependencies
-└── .github/ISSUE_TEMPLATE/       # GitHub issue templates
+├── main.py                     # Entry point wrapper
+├── app/
+│   ├── main.py                 # Core app logic
+│   ├── config.py               # Config loader (config.json)
+│   ├── banking.py              # CSV parser for bank statements
+│   ├── weather.py              # WeatherService (OpenWeather integration)
+│   ├── location.py             # LocationService (Geoapify + IPRegistry + WinRT GPS)
+│   ├── paths.py                # Directory configuration
+│   └── ui/
+│       ├── layout.py           # Rich UI layout builder
+│       ├── theme.py            # Terminal themes
+│       └── utils.py            # UI utilities
+├── requirements/
+│   ├── apikey.py               # API credentials (gitignored)
+│   ├── apikey_Def.py           # Template for API keys
+│   └── config.json             # User settings (theme, refresh rate, units)
+└── 02_Bankauszüge/             # Bank CSV statements (gitignored)
 ```
 
-## Architecture & Data Flow
+## APIs Used
 
-### Application Flow
-1. **Startup**: Load config → Initialize services (Banking, Weather, Location)
-2. **Main Loop**: Runs continuously with configurable refresh interval
-3. **Each Cycle**:
-   - Location service updates coordinates (WinRT or IP-based)
-   - Weather service fetches hourly/weekly forecasts
-   - Banking service parses latest CSV file
-   - UI layout is built and rendered via Rich Live
+| API | Used In | Purpose | Endpoint | Key Variable |
+|-----|---------|---------|----------|--------------|
+| **OpenWeather Hourly** | app/weather.py | Hourly forecast | `/data/2.5/forecast/hourly` | `api_key_weather` |
+| **OpenWeather Daily** | app/weather.py | 7-day forecast | `/data/2.5/forecast/daily` | `api_key_weather` |
+| **Geoapify** | app/location.py | Geocoding | `/v1/geocode/search` | `api_key_geo` |
+| **IPRegistry** | app/location.py | IP geolocation | `https://api.ipregistry.co` | `api_key_getcity` |
+| **Windows WinRT** | app/location.py | GPS coordinates | Native OS API | N/A |
 
-### Core Services
+## Current API Implementation
 
-| Service | File | Responsibility |
-|---------|------|----------------|
-| `Config` | `app/config.py` | Loads JSON config, provides defaults |
-| `WeatherService` | `app/weather.py` | Fetches and formats weather data |
-| `Banking` | `app/banking.py` | Parses CSV, calculates balance/spent/received |
-| `LocationService` | `app/location.py` | Determines user location via multiple methods |
+**WeatherService** (`app/weather.py:30-75`):
+- `get_hourly_forecast()` → `https://pro.openweathermap.org/data/2.5/forecast/hourly`
+- `get_weekly_forecast()` → `https://api.openweathermap.org/data/2.5/forecast/daily`
+- Returns: temps, weather icons, wind speed, timestamps
 
-## Running the Application
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up API keys (copy template and fill in your keys)
-cp requirements/apikey_Def.py requirements/apikey.py
-# Edit requirements/apikey.py with your actual API keys
-
-# Run the dashboard
-python app/main.py
-```
-
-### Required API Keys
-Configure in `requirements/apikey.py`:
-- `api_key_weather`: OpenWeather API key (for hourly and daily forecasts)
-- `api_key_getcity`: IPRegistry API key (for IP-based city detection)
-- `api_key_geo`: Geoapify API key (for geocoding city names)
+**LocationService** (`app/location.py:25-95`):
+- Fallback chain: WinRT GPS → IPRegistry → Geoapify
+- `get_city_from_ip()` → IPRegistry API
+- `get_coordinates(city)` → Geoapify geocoding API
 
 ## Configuration
 
-Configuration file: `requirements/config.json`
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `theme` | string | `"autumn"` | UI theme (forest_dark, forest, autumn, glacier, midnight_olive) |
-| `refresh_minutes` | int | `10` | Data refresh interval (min 10 seconds enforced) |
-| `units` | string | `"metric"` | Temperature/wind units (metric or imperial) |
-| `use_winrt_location` | bool | `true` | Enable Windows native geolocation |
-| `live_screen` | bool | `true` | Enable Rich Live screen mode |
-| `bank_rows` | int | `2` | Number of recent transactions to display (1-50) |
-| `max_hourly_forecast` | int | `12` | Maximum hourly forecast rows |
-| `max_weekly_forecast` | int | `7` | Maximum weekly forecast rows |
-
-## Coding Conventions
-
-### Python Style
-- Use `from __future__ import annotations` for forward references
-- Type hints are used throughout (e.g., `Path | None`, `tuple[float, float]`)
-- Dataclasses for simple data containers (`@dataclass`)
-- Custom exceptions inherit from `RuntimeError` (e.g., `WeatherError`, `LocationError`)
-
-### Service Pattern
-Services follow a consistent pattern:
+**API Keys** (`requirements/apikey.py`):
 ```python
-class ServiceName:
-    def __init__(self, ...):
-        # Initialize state attributes
-        self.attribute = default_value
-
-    def update(self, ...) -> None:
-        # Refresh internal state from external source
-        # Called from main loop
+api_key_geo = "cada2c690e8b49beb6855eec51e50dad"         # Geoapify
+api_key_weather = "58551f2566c10111a157c2223437a461"     # OpenWeather
+api_key_getcity = "ira_6HVa1fY8zDOB0dVhKih0MZD3NZ0JTO1rzDKO"  # IPRegistry
 ```
 
-### UI/Rich Conventions
-- Tables use `show_header=False, box=None` for minimal styling
-- Styles reference theme keys like `"app.weather.data"`, `"app.money.good"`
-- Layout uses Rich's `Layout.split_column()` and `Layout.split_row()`
-- Text assembly uses `Text.assemble()` with style tuples
-
-### Theme Style Keys
-```
-app.title, app.subtitle          # Main app styling
-app.weather.title, app.weather.data
-app.money.good, app.money.bad, app.money.neutral
-app.money.table.*                # Banking table styles
-statusbart.text, statusbart.City, statusbart.Time
-table.header, table.title, table.border
-divider, label, title
+**User Settings** (`requirements/config.json`):
+```json
+{
+  "theme": "autumn",
+  "refresh_minutes": 10,
+  "units": "metric",
+  "use_winrt_location": true,
+  "live_screen": true,
+  "bank_rows": 2,
+  "max_hourly_forecast": 12,
+  "max_weekly_forecast": 7
+}
 ```
 
-## Key Implementation Details
+## Data Flow
 
-### Weather Service (`app/weather.py`)
-- Uses OpenWeather Pro API for hourly forecasts
-- Uses standard OpenWeather API for daily forecasts
-- Weather icons mapped via `WEATHER_ICONS` dict (icon code -> emoji)
-- Handles timezone conversion for local time display
+```
+main.py → app/main.py
+    ├── LocationService → (WinRT GPS or IPRegistry) → Geoapify
+    ├── WeatherService → OpenWeather API (hourly + daily)
+    └── Banking → Local CSV parsing
+    ↓
+UI Rendering (Rich) → Terminal Dashboard
+```
 
-### Banking Service (`app/banking.py`)
-- Reads CSV files with `;` delimiter
-- Supports multiple date formats: `DD.MM.YYYY`, `DD/MM/YYYY`, `YYYY-MM-DD`
-- Automatically picks the most recent CSV file from the bank directory
-- Calculates: total_spent, total_received, balance
+## Migration to API Gateway
 
-### Location Service (`app/location.py`)
-- Primary: WinRT geolocation (Windows only)
-- Fallback: IPRegistry API -> Geoapify geocoding
-- Handles async WinRT calls safely with event loop detection
+**Target**: Use centralized API gateway at `https://api.novaroma-homelab.uk`
 
-## Testing
+**Benefits**:
+- No API keys in client code
+- JWT-based authentication
+- Centralized key management
+- Better security
 
-There is no formal test suite. For manual testing:
-- Use `example.csv` for banking functionality testing
-- The application handles missing directories by creating them on startup
-
-## Security Considerations
-
-### Protected Files (via .gitignore)
-- `/requirements/apikey.py` - Real API keys (never commit)
-- `/02_Bankauszüge/*` - Real bank data (never commit)
-- `/Archive/` - Archived files
-
-### Best Practices
-- Use `requirements/apikey_Def.py` as a template only
-- Test with `example.csv` containing fake data
-- Never commit real financial data or API credentials
-
-## Common Tasks
-
-### Adding a New Theme
-1. Edit `app/ui/theme.py`
-2. Add a new entry to the `STYLES` dict
-3. Define all required style keys (see existing themes for reference)
-
-### Adding a New Configuration Option
-1. Add default value to `DEFAULT_CONFIG` in `app/config.py`
-2. Access via `config.data["option_name"]` in `app/main.py`
-3. Update `requirements/config.json` with the new option
-
-### Modifying the UI Layout
-1. Edit `app/ui/layout.py`
-2. The `build_layout()` function constructs the entire UI
-3. Use Rich's Layout API for structural changes
-4. Reference styles from themes via style key strings
-
-### Adding a New API Integration
-1. Create a new service class in `app/` directory
-2. Follow the service pattern (init with config, update method)
-3. Add API key placeholder to `requirements/apikey_Def.py`
-4. Initialize and call from `app/main.py`
-
-## Dependencies
-
-Key libraries:
-- **Rich** (14.2.0): Terminal UI, tables, layouts, themes, Live display
-- **Requests** (2.32.5): HTTP requests for APIs
-- **PyFiglet** (1.0.4): ASCII art text rendering for city names
-- **winrt**: Windows Runtime for native geolocation (Windows only)
-
-## Language Note
-
-Some UI text and documentation is in German:
-- Banking table headers (Buchung, Valuta, Belastung, Gutschrift, Saldo)
-- CONTRIBUTING.md is written in German
-- Error messages may be in German (e.g., "Keine CSV-Dateien gefunden!")
-
-## File Naming
-
-- Service classes: lowercase with underscores (`weather.py`, `location.py`)
-- UI components: in `app/ui/` subdirectory
-- Configuration: in `requirements/` directory
-- Main entry point: `app/main.py`
+**Required Changes**:
+1. Add authentication module (JWT tokens)
+2. Replace WeatherService API calls with gateway endpoints
+3. Replace LocationService API calls with gateway endpoints
+4. Add hourly/daily forecast endpoints to gateway
+5. Add IPRegistry proxy to gateway
