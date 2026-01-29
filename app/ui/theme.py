@@ -188,4 +188,118 @@ STYLES = {
     "app.money.table.row": "#E2EBD7",
 })
 ,
+"ocean_depths": Theme({
+    # App
+    "divider": "#2E6B7A",
+    "app.title": "#5FBCD3",
+    "app.subtitle": "#E0F4F7",
+
+    # Statusbar
+    "statusbart.text": "#5FBCD3",
+    "statusbart.City": "#E0F4F7",
+    "statusbart.Time": "#8DD3E0",
+
+    # Parts
+    "label": "#E0F4F7",
+
+    # Tables
+    "table.header": "#3A9DBF",
+    "table.title": "#7FE0F0",
+    "table.border": "#1A4A5A",
+
+    "title": "#7FE0F0",
+
+    # App.Weather
+    "app.weather.data": "#E0F4F7",
+    "app.weather.title": "#5FBCD3",
+
+    # App.Banking
+    "app.money.good": "bold #6FDBA0",
+    "app.money.bad": "bold #E8736F",
+    "app.money.neutral": "bold #E0F4F7",
+    "app.money.title": "#5FBCD3",
+
+    # App.Banking.Table
+    "app.money.table.columHeader": "#7AC4D4",
+    "app.money.table.title": "#5FBCD3",
+    "app.money.table.border": "#8DD3E0",
+    "app.money.table.row": "#E0F4F7",
+})
+,
+"lavender_dusk": Theme({
+    # App
+    "divider": "#7B6B8A",
+    "app.title": "#B89FD4",
+    "app.subtitle": "#F0E8F5",
+
+    # Statusbar
+    "statusbart.text": "#B89FD4",
+    "statusbart.City": "#F0E8F5",
+    "statusbart.Time": "#D4C4E8",
+
+    # Parts
+    "label": "#F0E8F5",
+
+    # Tables
+    "table.header": "#9A7FBF",
+    "table.title": "#D9C4F0",
+    "table.border": "#4A3D5A",
+
+    "title": "#D9C4F0",
+
+    # App.Weather
+    "app.weather.data": "#F0E8F5",
+    "app.weather.title": "#B89FD4",
+
+    # App.Banking
+    "app.money.good": "bold #8FD9A0",
+    "app.money.bad": "bold #E08A8A",
+    "app.money.neutral": "bold #F0E8F5",
+    "app.money.title": "#B89FD4",
+
+    # App.Banking.Table
+    "app.money.table.columHeader": "#C4B0DC",
+    "app.money.table.title": "#B89FD4",
+    "app.money.table.border": "#D4C4E8",
+    "app.money.table.row": "#F0E8F5",
+})
+,
+"desert_sunset": Theme({
+    # App
+    "divider": "#B8865A",
+    "app.title": "#E8A862",
+    "app.subtitle": "#FDF4E8",
+
+    # Statusbar
+    "statusbart.text": "#E8A862",
+    "statusbart.City": "#FDF4E8",
+    "statusbart.Time": "#F0C89A",
+
+    # Parts
+    "label": "#FDF4E8",
+
+    # Tables
+    "table.header": "#D4724A",
+    "table.title": "#FFD4A8",
+    "table.border": "#6B4A32",
+
+    "title": "#FFD4A8",
+
+    # App.Weather
+    "app.weather.data": "#FDF4E8",
+    "app.weather.title": "#E8A862",
+
+    # App.Banking
+    "app.money.good": "bold #8FD9A0",
+    "app.money.bad": "bold #E87070",
+    "app.money.neutral": "bold #FDF4E8",
+    "app.money.title": "#E8A862",
+
+    # App.Banking.Table
+    "app.money.table.columHeader": "#E8BC7A",
+    "app.money.table.title": "#E8A862",
+    "app.money.table.border": "#F0C89A",
+    "app.money.table.row": "#FDF4E8",
+})
+,
 }
