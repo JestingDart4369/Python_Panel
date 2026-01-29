@@ -76,3 +76,14 @@ class GatewayClient:
         """Get location information from IP address."""
         params = {"ip": ip} if ip else {}
         return self.get(f"/ipregistry/location", params=params)
+
+    def send_email(self, to: list, subject: str, html: str, from_email: Optional[str] = None) -> Dict[Any, Any]:
+        """Send an email via Resend API."""
+        payload = {
+            "to": to if isinstance(to, list) else [to],
+            "subject": subject,
+            "html": html
+        }
+        if from_email:
+            payload["from_email"] = from_email
+        return self.post(f"/email/send", json=payload)
