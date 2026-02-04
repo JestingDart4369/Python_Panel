@@ -62,20 +62,20 @@ class GatewayClient:
 
     def get_hourly_forecast(self, lat: float, lon: float, units: str = "metric") -> Dict[Any, Any]:
         """Get hourly weather forecast (48 hours)."""
-        return self.get(f"/forecast/hourly", params={"lat": lat, "lon": lon, "units": units})
+        return self.get(f"/weather/forecast/hourly", params={"lat": lat, "lon": lon, "units": units})
 
     def get_daily_forecast(self, lat: float, lon: float, days: int = 7, units: str = "metric") -> Dict[Any, Any]:
         """Get daily weather forecast."""
-        return self.get(f"/forecast/daily", params={"lat": lat, "lon": lon, "cnt": days, "units": units})
+        return self.get(f"/weather/forecast/daily", params={"lat": lat, "lon": lon, "cnt": days, "units": units})
 
     def geocode(self, city: str) -> Dict[Any, Any]:
         """Get coordinates for a city name."""
-        return self.get(f"/geocode", params={"text": city})
+        return self.get(f"/geo/geocode", params={"text": city})
 
     def get_location_from_ip(self, ip: Optional[str] = None) -> Dict[Any, Any]:
         """Get location information from IP address."""
         params = {"ip": ip} if ip else {}
-        return self.get(f"/ipregistry/location", params=params)
+        return self.get(f"/geo/ip", params=params)
 
     def send_email(self, to: list, subject: str, html: str, from_email: Optional[str] = None) -> Dict[Any, Any]:
         """Send an email via Resend API."""
