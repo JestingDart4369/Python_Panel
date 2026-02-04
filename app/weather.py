@@ -10,7 +10,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from requirements.gateway import GatewayClient
-from requirements import apikey
+from requirements import config
 
 WEATHER_ICONS = {
     "01d": "☀️", "02d": "⛅", "03d": "☁️", "04d": "☁️☁️", "09d": "🌧️",
@@ -33,12 +33,11 @@ class WeatherResult:
 
 
 class WeatherService:
-    def __init__(self, api_key: str, units: str):
-        # Initialize gateway client
+    def __init__(self, units: str):
         self.gateway = GatewayClient(
-            base_url=apikey.GATEWAY_URL,
-            username=apikey.GATEWAY_USERNAME,
-            password=apikey.GATEWAY_PASSWORD
+            base_url=config.GATEWAY_URL,
+            username=config.GATEWAY_USERNAME,
+            password=config.GATEWAY_PASSWORD
         )
         self.units = units  # "metric" or "imperial"
 

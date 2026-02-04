@@ -14,7 +14,8 @@ from app.banking import Banking
 from app.location import LocationService
 from app.weather import WeatherService
 
-from requirements import apikey
+from requirements import config as gw_config
+from requirements.gateway import GatewayClient
 from app.heartbeat import Heartbeat
 
 
@@ -33,15 +34,14 @@ def main():
     bank = Banking(BANK_DIR)
     location = LocationService(
         use_winrt=bool(config.data["use_winrt_location"]),
-        api_key_get_city=apikey.api_key_getcity,
-        api_key_geo=apikey.api_key_geo,
     )
-    weather = WeatherService(api_key=apikey.api_key_weather, units=config.data["units"])
+    weather = WeatherService(units=config.data["units"])
 
     # ── kill-switch heartbeat ─────────────────────────────────────
     # Disable "python-panel" in /settings/software on the gateway to
     # shut the dashboard down remotely.
-    heartbeat = Heartbeat("python-panel", apikey.GATEWAY_USERNAME, apikey.GATEWAY_PASSWORD)
+    _gw = GatewayClient(gw_config.GATEWAY_URL, gw_config.GATEWAY_USERNAME, gw_config.GATEWAY_PASSWORD)
+    heartbeat = Heartbeat(_gw, kind="software", name="python-panel")
     heartbeat.start()
 
     live_screen = bool(config.data.get("live_screen", False))

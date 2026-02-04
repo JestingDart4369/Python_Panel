@@ -13,7 +13,7 @@ from winrt.windows.devices.geolocation import Geolocator
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from requirements.gateway import GatewayClient
-from requirements import apikey
+from requirements import config
 
 
 class LocationError(RuntimeError):
@@ -27,20 +27,12 @@ class LocationResult:
 
 
 class LocationService:
-    def __init__(
-        self,
-        *,
-        use_winrt: bool,
-        api_key_get_city: str,
-        api_key_geo: str,
-        ipregistry_url: str = "",
-    ):
+    def __init__(self, *, use_winrt: bool):
         self.use_winrt = use_winrt
-        # Initialize gateway client
         self.gateway = GatewayClient(
-            base_url=apikey.GATEWAY_URL,
-            username=apikey.GATEWAY_USERNAME,
-            password=apikey.GATEWAY_PASSWORD
+            base_url=config.GATEWAY_URL,
+            username=config.GATEWAY_USERNAME,
+            password=config.GATEWAY_PASSWORD
         )
 
         # state you can read from main/ui

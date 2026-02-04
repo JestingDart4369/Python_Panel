@@ -1,5 +1,6 @@
 # API keys and credentials (CRITICAL - DO NOT COMMIT)
 /requirements/apikey.py
+/requirements/config.py
 
 # Bank statements (sensitive financial data)
 /02_Bankauszüge/*
