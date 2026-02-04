@@ -15,6 +15,7 @@ from app.location import LocationService
 from app.weather import WeatherService
 
 from requirements import apikey
+from app.heartbeat import Heartbeat
 
 
 def main():
@@ -37,11 +38,19 @@ def main():
     )
     weather = WeatherService(api_key=apikey.api_key_weather, units=config.data["units"])
 
+    # ── kill-switch heartbeat ─────────────────────────────────────
+    # Disable "python-panel" in /settings/software on the gateway to
+    # shut the dashboard down remotely.
+    heartbeat = Heartbeat("python-panel", apikey.GATEWAY_USERNAME, apikey.GATEWAY_PASSWORD)
+    heartbeat.start()
+
     live_screen = bool(config.data.get("live_screen", False))
 
     try:
         with Live(console=console, screen=live_screen, auto_refresh=False) as live:
             while True:
+                if heartbeat.killed.is_set():
+                    break
                 now = time.time()
                 elapsed = now - last_fetch_at
                 remaining = int(refresh_seconds - elapsed)
@@ -79,6 +88,10 @@ def main():
                 console.clear()
                 live.update(layout, refresh=True)
                 time.sleep(1)
+
+        # Live block exited via heartbeat kill
+        console.clear()
+        print("[HEARTBEAT] Dashboard shut down — disabled on gateway.")
 
     except KeyboardInterrupt:
         if not config.data["live_screen"]:
